@@ -15,10 +15,30 @@
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
             </svg>
-            {{ $totalPending }} Surat Menunggu
+            {{ $totalPending }} Surat Keluar Menunggu
         </span>
         @endif
     </div>
+
+    @if(isset($incomingPending) && $incomingPending > 0)
+    <!-- Notifikasi Surat Masuk -->
+    <div class="mb-6 p-6 bg-indigo-600 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between text-white shadow-lg shadow-indigo-200 gap-4">
+        <div class="flex items-center gap-4">
+            <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                </svg>
+            </div>
+            <div>
+                <h3 class="font-bold text-lg">Notifikasi Surat Masuk</h3>
+                <p class="text-indigo-100 text-sm mt-0.5">Ada {{ $incomingPending }} surat masuk baru yang menunggu disposisi digital dari Anda.</p>
+            </div>
+        </div>
+        <a href="{{ route('incoming-letters.index') }}" class="px-5 py-2.5 bg-white text-indigo-600 text-sm font-bold rounded-xl hover:bg-indigo-50 transition shadow-sm whitespace-nowrap">
+            Lihat Surat Masuk
+        </a>
+    </div>
+    @endif
 
     <!-- Filter & Search -->
     <form method="GET" action="{{ route('kepsek.approval') }}" class="mb-6">

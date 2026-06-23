@@ -26,8 +26,11 @@ Route::get('/dashboard', function () {
     $disetujui = \App\Models\Letter::where('status', 'approved')->count();
     $ditolak = \App\Models\Letter::where('status', 'rejected')->count();
     $recentLetters = \App\Models\Letter::latest()->take(5)->get();
+    
+    $incomingPending = \App\Models\IncomingLetter::where('status', 'menunggu_disposisi')->count();
+    $incomingCompleted = \App\Models\IncomingLetter::where('status', 'selesai')->count();
 
-    return view('dashboard', compact('totalSurat', 'pending', 'disetujui', 'ditolak', 'recentLetters'));
+    return view('dashboard', compact('totalSurat', 'pending', 'disetujui', 'ditolak', 'recentLetters', 'incomingPending', 'incomingCompleted'));
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
@@ -40,6 +43,15 @@ Route::middleware('auth')->group(function () {
     Route::get('/surat/{letter}/edit', [\App\Http\Controllers\LetterController::class, 'edit'])->name('letters.edit');
     Route::put('/surat/{letter}', [\App\Http\Controllers\LetterController::class, 'update'])->name('letters.update');
     Route::delete('/surat/{letter}', [\App\Http\Controllers\LetterController::class, 'destroy'])->name('letters.destroy');
+
+    // Surat Masuk (Incoming Letters)
+    Route::get('/surat-masuk', [\App\Http\Controllers\IncomingLetterController::class, 'index'])->name('incoming-letters.index');
+    Route::get('/surat-masuk/buat', [\App\Http\Controllers\IncomingLetterController::class, 'create'])->name('incoming-letters.create');
+    Route::post('/surat-masuk/ocr', [\App\Http\Controllers\IncomingLetterController::class, 'ocr'])->name('incoming-letters.ocr');
+    Route::post('/surat-masuk/simpan', [\App\Http\Controllers\IncomingLetterController::class, 'store'])->name('incoming-letters.store');
+    Route::get('/surat-masuk/{incomingLetter}', [\App\Http\Controllers\IncomingLetterController::class, 'show'])->name('incoming-letters.show');
+    Route::post('/surat-masuk/{incomingLetter}/disposisi', [\App\Http\Controllers\IncomingLetterController::class, 'disposisi'])->name('incoming-letters.disposisi');
+
 
     // User Management
     Route::get('/users', [\App\Http\Controllers\UserController::class, 'index'])->name('users.index');

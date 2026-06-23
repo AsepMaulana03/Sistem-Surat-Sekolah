@@ -35,8 +35,10 @@ class KepsekController extends Controller
 
         $letters = $query->paginate(10)->withQueryString();
         $letterTypes = $this->getLetterTypes();
+        
+        $incomingPending = \App\Models\IncomingLetter::where('status', 'menunggu_disposisi')->count();
 
-        return view('kepsek.approval', compact('letters', 'letterTypes'));
+        return view('kepsek.approval', compact('letters', 'letterTypes', 'incomingPending'));
     }
 
     /**
