@@ -70,6 +70,47 @@
                         placeholder="Tulis paragraf isi surat di sini..."></textarea>
                 </div>
 
+                <!-- Pilihan Kepala Sekolah -->
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="block text-sm font-medium text-gray-700">Kepala Sekolah (Penandatangan)</label>
+                        <button type="button" @click="showPejabatModal = true" class="text-xs text-blue-600 hover:text-blue-800 font-medium">
+                            + Tambah Pejabat Baru
+                        </button>
+                    </div>
+                    <select name="kepsek_id" x-model="kepsekId" required
+                        class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
+                        <option value="" disabled selected>Pilih Kepala Sekolah</option>
+                        <template x-for="pejabat in pejabats" :key="pejabat.id">
+                            <option :value="pejabat.id" x-text="pejabat.nama"></option>
+                        </template>
+                    </select>
+                </div>
+
+                <!-- Jumlah Penandatangan -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Jumlah Penandatangan</label>
+                    <div class="flex gap-4">
+                        <label class="flex items-center">
+                            <input type="radio" name="jumlah_ttd" value="1" x-model="jumlahTtd" class="mr-2" required>
+                            <span class="text-sm">1 Penandatangan (Kepala Sekolah)</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="radio" name="jumlah_ttd" value="2" x-model="jumlahTtd" class="mr-2" required>
+                            <span class="text-sm">2 Penandatangan (Pihak 1 & Kepsek)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Pihak 1 / Guru Pendamping (Hanya muncul jika 2 Penandatangan) -->
+                <div x-show="jumlahTtd == '2'" style="display: none;">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Nama Pihak 1 / Guru Pendamping</label>
+                    <input type="text" name="pihak1_name" x-model="pihak1Name"
+                        class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                        placeholder="Contoh: Budi Santoso, S.Pd"
+                        :required="jumlahTtd == '2'">
+                </div>
+
                 <div class="flex gap-4 pt-2">
                     <button type="submit" name="action" value="draft"
                         class="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition">
@@ -145,19 +186,55 @@
                 </div>
 
                 <!-- Tanda Tangan -->
-                <div class="flex justify-end mt-12">
+                <div class="mt-12 flex" :class="jumlahTtd == '2' ? 'justify-between' : 'justify-end'">
+                    <!-- Pihak 1 -->
+                    <div x-show="jumlahTtd == '2'" class="text-center w-64" style="display: none;">
+                        <div class="h-6"></div> <!-- Spacer to match Kepsek's date -->
+                        <div>Mengetahui,</div>
+                        <div>Pihak 1 / Guru Pendamping</div>
+                        <div class="font-bold">SMA AL MANSHUR</div>
+                        <div class="h-20"></div> <!-- Space for signature -->
+                        <div class="font-bold underline" x-text="pihak1Name || '(Nama Pihak 1)'"></div>
+                    </div>
+
+                    <!-- Kepala Sekolah -->
                     <div class="text-center w-64">
                         <div>Panjalu, <span x-text="formattedDate"></span></div>
                         <div>Mengetahui,</div>
                         <div>Kepala Sekolah</div>
                         <div class="font-bold">SMA AL MANSHUR</div>
                         <div class="h-20"></div>
-                        <div class="font-bold underline">Tini Sonjaya,S.Pd.,Gr</div>
+                        <div class="font-bold underline" x-text="kepsekName || '(Nama Kepala Sekolah)'"></div>
                     </div>
                 </div>
             </div>
         </div>
 
+    </div>
+</div>
+
+<!-- Modal Tambah Pejabat -->
+<div x-show="showPejabatModal" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4" @click.away="showPejabatModal = false">
+        <div class="flex justify-between items-center px-6 py-4 border-b">
+            <h3 class="text-lg font-bold text-gray-900">Tambah Pejabat Baru</h3>
+            <button type="button" @click="showPejabatModal = false" class="text-gray-400 hover:text-gray-600">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        <div class="p-6 space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Nama Lengkap & Gelar</label>
+                <input type="text" x-model="newPejabat.nama" class="w-full px-4 py-2 border rounded-lg text-sm focus:ring-blue-500" placeholder="Contoh: Budi Santoso, S.Pd">
+            </div>
+        </div>
+        <div class="px-6 py-4 border-t flex justify-end gap-3 bg-gray-50 rounded-b-lg">
+            <button type="button" @click="showPejabatModal = false" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Batal</button>
+            <button type="button" @click="savePejabat" :disabled="isLoadingPejabat" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center">
+                <span x-show="isLoadingPejabat" class="mr-2">...</span>
+                Simpan
+            </button>
+        </div>
     </div>
 </div>
 
@@ -170,6 +247,60 @@
             letterDate: '{{ $letter->letter_date ? \Carbon\Carbon::parse($letter->letter_date)->format('Y-m-d') : '' }}',
             destination: @json($letter->destination ?? ''),
             content: @json($letter->content ?? ''),
+            jumlahTtd: '{{ $letter->jumlah_ttd ?? 1 }}',
+            pihak1Name: @json($letter->pihak1_name ?? ''),
+            kepsekId: '{{ $letter->kepsek_id ?? "" }}',
+            pejabats: @json($pejabats),
+            
+            showPejabatModal: false,
+            isLoadingPejabat: false,
+            newPejabat: { nama: '' },
+
+            init() {
+                if (!this.kepsekId) {
+                    const active = this.pejabats.find(p => p.is_active);
+                    if (active) {
+                        this.kepsekId = active.id;
+                    }
+                }
+            },
+
+            get kepsekName() {
+                if (!this.kepsekId) return '';
+                const p = this.pejabats.find(p => p.id == this.kepsekId);
+                return p ? p.nama : '';
+            },
+
+            get kepsekNip() {
+                if (!this.kepsekId) return '';
+                const p = this.pejabats.find(p => p.id == this.kepsekId);
+                return p ? p.nip : '';
+            },
+
+            async savePejabat() {
+                if (!this.newPejabat.nama) return alert('Nama wajib diisi');
+                this.isLoadingPejabat = true;
+                try {
+                    const res = await fetch('{{ route('letters.pejabat.store') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify(this.newPejabat)
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        this.pejabats.push(data.pejabat);
+                        this.kepsekId = data.pejabat.id;
+                        this.showPejabatModal = false;
+                        this.newPejabat = { nama: '' };
+                    }
+                } catch (e) {
+                    alert('Gagal menyimpan pejabat');
+                }
+                this.isLoadingPejabat = false;
+            },
 
             get autoNumber() {
                 if (!this.typeCode) return '';

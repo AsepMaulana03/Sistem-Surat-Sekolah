@@ -39,6 +39,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/surat/arsip', [\App\Http\Controllers\LetterController::class, 'arsip'])->name('letters.arsip');
     Route::get('/surat/arsip/{letter}', [\App\Http\Controllers\LetterController::class, 'showArsip'])->name('letters.arsip.show');
     Route::post('/surat', [\App\Http\Controllers\LetterController::class, 'store'])->name('letters.store');
+    Route::post('/surat/pejabat', [\App\Http\Controllers\LetterController::class, 'storePejabat'])->name('letters.pejabat.store');
     Route::get('/surat/{letter}', [\App\Http\Controllers\LetterController::class, 'show'])->name('letters.show');
     Route::get('/surat/{letter}/edit', [\App\Http\Controllers\LetterController::class, 'edit'])->name('letters.edit');
     Route::put('/surat/{letter}', [\App\Http\Controllers\LetterController::class, 'update'])->name('letters.update');

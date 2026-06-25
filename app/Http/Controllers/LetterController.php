@@ -23,7 +23,9 @@ class LetterController extends Controller
             $sequences[$code] = str_pad($count + 1, 2, '0', STR_PAD_LEFT);
         }
 
-        return view('letters.create', compact('letterTypes', 'sequences'));
+        $pejabats = \App\Models\Pejabat::orderBy('is_active', 'desc')->get();
+
+        return view('letters.create', compact('letterTypes', 'sequences', 'pejabats'));
     }
 
     public function store(Request $request)
@@ -35,6 +37,9 @@ class LetterController extends Controller
             'letter_date' => 'required|date',
             'destination' => 'nullable|string',
             'content' => 'required|string',
+            'jumlah_ttd' => 'required|in:1,2',
+            'kepsek_id' => 'required|exists:pejabats,id',
+            'pihak1_name' => 'nullable|required_if:jumlah_ttd,2|string|max:255',
         ]);
 
         $letter = new Letter($validated);
@@ -47,7 +52,11 @@ class LetterController extends Controller
         $letter->title = $typeName . ' - ' . $eventName;
         
         // Tentukan status berdasarkan tombol yang diklik
-        $letter->status = $request->input('action') === 'draft' ? 'draft' : 'pending';
+        if ($request->input('action') === 'draft') {
+            $letter->status = 'draft';
+        } else {
+            $letter->status = $request->jumlah_ttd == 2 ? 'menunggu_persetujuan_pihak1' : 'pending';
+        }
         $letter->save();
 
         $message = $letter->status === 'draft' 
@@ -101,7 +110,8 @@ class LetterController extends Controller
             $count = Letter::where('type_code', $code)->where('id', '!=', $letter->id)->count();
             $sequences[$code] = str_pad($count + 1, 2, '0', STR_PAD_LEFT);
         }
-        return view('letters.edit', compact('letter', 'letterTypes', 'sequences'));
+        $pejabats = \App\Models\Pejabat::orderBy('is_active', 'desc')->get();
+        return view('letters.edit', compact('letter', 'letterTypes', 'sequences', 'pejabats'));
     }
 
     public function update(Request $request, Letter $letter)
@@ -113,13 +123,20 @@ class LetterController extends Controller
             'letter_date' => 'required|date',
             'destination' => 'nullable|string',
             'content'     => 'required|string',
+            'jumlah_ttd'  => 'required|in:1,2',
+            'kepsek_id'   => 'required|exists:pejabats,id',
+            'pihak1_name'   => 'nullable|required_if:jumlah_ttd,2|string|max:255',
         ]);
 
         $types = $this->getLetterTypes();
 
         $letter->fill($validated);
         $letter->title = ($types[$request->type_code] ?? 'Surat') . ' - ' . ($request->event_name ?: 'Kegiatan');
-        $letter->status = $request->input('action') === 'draft' ? 'draft' : 'pending';
+        if ($request->input('action') === 'draft') {
+            $letter->status = 'draft';
+        } else {
+            $letter->status = $request->jumlah_ttd == 2 ? 'menunggu_persetujuan_pihak1' : 'pending';
+        }
         $letter->save();
 
         $message = $letter->status === 'draft'
@@ -165,5 +182,27 @@ class LetterController extends Controller
         $letterTypes = $this->getLetterTypes();
 
         return view('letters.arsip-show', compact('letter', 'letterTypes'));
+    }
+
+    public function storePejabat(Request $request)
+    {
+        $validated = $request->validate([
+            'nama' => 'required|string|max:255',
+            'nip' => 'nullable|string|max:255',
+        ]);
+
+        // Nonaktifkan semua pejabat lain
+        \App\Models\Pejabat::query()->update(['is_active' => false]);
+
+        $pejabat = \App\Models\Pejabat::create([
+            'nama' => $validated['nama'],
+            'nip' => $validated['nip'] ?? null,
+            'is_active' => true,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'pejabat' => $pejabat
+        ]);
     }
 }

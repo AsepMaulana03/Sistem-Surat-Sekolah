@@ -22,7 +22,11 @@ class Letter extends Model
         'rejection_note',
         'reviewed_at',
         'reviewed_by',
-        'status', // draft, pending, approved, rejected
+        'kepsek_id',
+        'jumlah_ttd',
+        'pihak1_id',
+        'pihak1_name',
+        'status', // draft, pending, menunggu_persetujuan_pihak1, approved, rejected
     ];
 
     protected $casts = [
