@@ -30,7 +30,14 @@ Route::get('/dashboard', function () {
     $incomingPending = \App\Models\IncomingLetter::where('status', 'menunggu_disposisi')->count();
     $incomingCompleted = \App\Models\IncomingLetter::where('status', 'selesai')->count();
 
-    return view('dashboard', compact('totalSurat', 'pending', 'disetujui', 'ditolak', 'recentLetters', 'incomingPending', 'incomingCompleted'));
+    $pihak1Pending = 0;
+    if (\Illuminate\Support\Facades\Auth::check() && \Illuminate\Support\Facades\Auth::user()->role && \Illuminate\Support\Facades\Auth::user()->role->code === 'guru') {
+        $pihak1Pending = \App\Models\Letter::where('status', 'menunggu_persetujuan_pihak1')
+            ->where('pihak1_id', \Illuminate\Support\Facades\Auth::id())
+            ->count();
+    }
+
+    return view('dashboard', compact('totalSurat', 'pending', 'disetujui', 'ditolak', 'recentLetters', 'incomingPending', 'incomingCompleted', 'pihak1Pending'));
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
@@ -52,6 +59,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/surat-masuk/simpan', [\App\Http\Controllers\IncomingLetterController::class, 'store'])->name('incoming-letters.store');
     Route::get('/surat-masuk/{incomingLetter}', [\App\Http\Controllers\IncomingLetterController::class, 'show'])->name('incoming-letters.show');
     Route::post('/surat-masuk/{incomingLetter}/disposisi', [\App\Http\Controllers\IncomingLetterController::class, 'disposisi'])->name('incoming-letters.disposisi');
+    Route::delete('/surat-masuk/{incomingLetter}', [\App\Http\Controllers\IncomingLetterController::class, 'destroy'])->name('incoming-letters.destroy');
 
 
     // User Management
@@ -74,6 +82,13 @@ Route::middleware('auth')->group(function () {
     Route::post('/kepsek/approval/{letter}/reject', [\App\Http\Controllers\KepsekController::class, 'reject'])->name('kepsek.reject');
     Route::get('/kepsek/arsip', [\App\Http\Controllers\KepsekController::class, 'arsip'])->name('kepsek.arsip');
     Route::get('/kepsek/surat/{letter}', [\App\Http\Controllers\KepsekController::class, 'show'])->name('kepsek.show');
+
+    // Routes Pihak 1 (Guru Pendamping)
+    Route::get('/guru/approval', [\App\Http\Controllers\Pihak1Controller::class, 'approval'])->name('guru.approval');
+    Route::post('/guru/approval/{letter}/approve', [\App\Http\Controllers\Pihak1Controller::class, 'approve'])->name('guru.approve');
+    Route::post('/guru/approval/{letter}/reject', [\App\Http\Controllers\Pihak1Controller::class, 'reject'])->name('guru.reject');
+    Route::get('/guru/arsip', [\App\Http\Controllers\Pihak1Controller::class, 'arsip'])->name('guru.arsip');
+    Route::get('/guru/surat/{letter}', [\App\Http\Controllers\Pihak1Controller::class, 'show'])->name('guru.show');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

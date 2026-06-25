@@ -5,19 +5,17 @@
     <!-- Header -->
     <div class="flex items-center justify-between mb-6">
         <div>
-            <h1 class="text-2xl font-bold text-gray-900">Preview Surat</h1>
-            <p class="text-sm text-gray-500 mt-1">Detail lengkap surat yang telah dibuat</p>
+            <h1 class="text-2xl font-bold text-gray-900">Detail Surat (Pihak 1)</h1>
+            <p class="text-sm text-gray-500 mt-0.5">Preview lengkap dokumen surat</p>
         </div>
         <div class="flex items-center gap-3">
-            <a href="{{ route('letters.edit', $letter) }}" id="btn-edit-surat"
-               class="inline-flex items-center gap-2 px-4 py-2.5 border border-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                </svg>
-                Edit
-            </a>
-            <a href="{{ route('letters.index') }}" id="btn-kembali"
-               class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition">
+            @php
+                $statusConfig = ['draft'=>['bg-gray-100 text-gray-600','Draft'],'pending'=>['bg-amber-50 text-amber-600','Pending Kepsek'],'approved'=>['bg-green-50 text-green-600','Disetujui Kepsek'],'rejected'=>['bg-red-50 text-red-500','Ditolak'],'menunggu_persetujuan_pihak1'=>['bg-blue-50 text-blue-600','Menunggu Persetujuan Anda']];
+                [$cls,$lbl] = $statusConfig[$letter->status] ?? ['bg-gray-100 text-gray-600', ucfirst($letter->status)];
+            @endphp
+            <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold {{ $cls }}">{{ $lbl }}</span>
+            <a href="{{ url()->previous() }}"
+               class="inline-flex items-center gap-2 px-4 py-2.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
                 </svg>
@@ -26,25 +24,16 @@
         </div>
     </div>
 
-    <!-- Status Badge -->
-    @php
-        $statusConfig = [
-            'draft'    => ['bg-gray-100 text-gray-600',   'Draft'],
-            'menunggu_persetujuan_pihak1' => ['bg-blue-50 text-blue-600', 'Menunggu Pihak 1'],
-            'pending'  => ['bg-amber-50 text-amber-600',  'Menunggu Kepsek'],
-            'approved' => ['bg-green-50 text-green-600',  'Disetujui'],
-            'rejected' => ['bg-red-50 text-red-500',      'Ditolak'],
-        ];
-        [$cls, $lbl] = $statusConfig[$letter->status] ?? ['bg-gray-100 text-gray-600', ucfirst($letter->status)];
-    @endphp
-    <div class="mb-6 flex items-center gap-3">
-        <span class="text-sm text-gray-500">Status Surat:</span>
-        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold {{ $cls }}">{{ $lbl }}</span>
+    <!-- Catatan penolakan (jika ada) -->
+    @if($letter->status === 'rejected' && $letter->rejection_note)
+    <div class="mb-6 p-4 bg-red-50 border-l-4 border-red-400 rounded-r-lg">
+        <p class="text-sm font-semibold text-red-700 mb-1">Catatan Penolakan:</p>
+        <p class="text-sm text-red-600">{{ $letter->rejection_note }}</p>
     </div>
+    @endif
 
     <!-- Preview A4 -->
     <div class="bg-white p-12 shadow-md border border-gray-200 rounded-lg mx-auto text-[13px] text-black max-w-3xl" style="font-family: 'Times New Roman', Times, serif;">
-
         <!-- KOP Surat -->
         <div class="flex items-center justify-between border-b-4 border-black pb-4 mb-6">
             <img src="{{ asset('images/logo_yayasan.png') }}" alt="Logo Yayasan" class="w-24 h-24 object-contain flex-shrink-0">
@@ -59,24 +48,12 @@
             <img src="{{ asset('images/logo_sekolah.png') }}" alt="Logo Sekolah" class="w-24 h-24 object-contain flex-shrink-0">
         </div>
 
-        <!-- Nomor & Lampiran -->
+        <!-- Nomor -->
         <div class="mb-6">
             <table>
-                <tr>
-                    <td class="w-24 align-top">Nomor</td>
-                    <td class="w-4 align-top">:</td>
-                    <td>{{ $letter->letter_number ?? '-' }}</td>
-                </tr>
-                <tr>
-                    <td class="align-top">Lampiran</td>
-                    <td class="align-top">:</td>
-                    <td>-</td>
-                </tr>
-                <tr>
-                    <td class="align-top">Perihal</td>
-                    <td class="align-top">:</td>
-                    <td>{{ $letter->event_name ?? '-' }}</td>
-                </tr>
+                <tr><td class="w-24 align-top">Nomor</td><td class="w-4 align-top">:</td><td>{{ $letter->letter_number ?? '-' }}</td></tr>
+                <tr><td class="align-top">Lampiran</td><td class="align-top">:</td><td>-</td></tr>
+                <tr><td class="align-top">Perihal</td><td class="align-top">:</td><td>{{ $letter->event_name ?? '-' }}</td></tr>
             </table>
         </div>
 
@@ -87,20 +64,12 @@
             <div>di tempat</div>
         </div>
 
-        <!-- Salam Pembuka -->
-        <div class="text-center italic mb-4">
-            Assalamu'alaikum warahmatullahi wabarakatuh
-        </div>
+        <div class="text-center italic mb-4">Assalamu'alaikum warahmatullahi wabarakatuh</div>
 
-        <!-- Isi Surat -->
         <div class="text-justify leading-relaxed whitespace-pre-wrap">{{ $letter->content }}</div>
 
-        <!-- Salam Penutup -->
-        <div class="text-center italic mt-6 mb-8">
-            Wassalamu'alaikum warahmatullahi wabarakatuh
-        </div>
+        <div class="text-center italic mt-6 mb-8">Wassalamu'alaikum warahmatullahi wabarakatuh</div>
 
-        <!-- Tanda Tangan -->
         <div class="mt-12 flex {{ $letter->jumlah_ttd == 2 ? 'justify-between' : 'justify-end' }}">
             @if($letter->jumlah_ttd == 2)
             <div class="text-center w-64">
@@ -114,7 +83,7 @@
             @endif
 
             <div class="text-center w-64">
-                <div>Panjalu, {{ $letter->letter_date ? \Carbon\Carbon::parse($letter->letter_date)->isoFormat('D MMMM Y') : '-' }}</div>
+                <div>Panjalu, {{ $letter->letter_date ? $letter->letter_date->isoFormat('D MMMM Y') : '-' }}</div>
                 <div>Mengetahui,</div>
                 <div>Kepala Sekolah</div>
                 <div class="font-bold">SMA AL MANSHUR</div>
@@ -125,7 +94,6 @@
                 <div class="font-bold underline">{{ $kepsekName }}</div>
             </div>
         </div>
-
     </div>
 </div>
 @endsection

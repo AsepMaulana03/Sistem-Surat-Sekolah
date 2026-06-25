@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Letter;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -24,8 +25,9 @@ class LetterController extends Controller
         }
 
         $pejabats = \App\Models\Pejabat::orderBy('is_active', 'desc')->get();
+        $gurus = User::whereHas('role', function($q) { $q->where('code', 'guru'); })->get();
 
-        return view('letters.create', compact('letterTypes', 'sequences', 'pejabats'));
+        return view('letters.create', compact('letterTypes', 'sequences', 'pejabats', 'gurus'));
     }
 
     public function store(Request $request)
@@ -39,11 +41,18 @@ class LetterController extends Controller
             'content' => 'required|string',
             'jumlah_ttd' => 'required|in:1,2',
             'kepsek_id' => 'required|exists:pejabats,id',
-            'pihak1_name' => 'nullable|required_if:jumlah_ttd,2|string|max:255',
+            'pihak1_id' => 'nullable|required_if:jumlah_ttd,2|exists:users,id',
         ]);
 
         $letter = new Letter($validated);
         $letter->user_id = Auth::id();
+
+        if ($request->jumlah_ttd == 2 && $request->pihak1_id) {
+            $guru = User::find($request->pihak1_id);
+            if ($guru) {
+                $letter->pihak1_name = $guru->name;
+            }
+        }
         
         $types = $this->getLetterTypes();
         
@@ -111,7 +120,8 @@ class LetterController extends Controller
             $sequences[$code] = str_pad($count + 1, 2, '0', STR_PAD_LEFT);
         }
         $pejabats = \App\Models\Pejabat::orderBy('is_active', 'desc')->get();
-        return view('letters.edit', compact('letter', 'letterTypes', 'sequences', 'pejabats'));
+        $gurus = User::whereHas('role', function($q) { $q->where('code', 'guru'); })->get();
+        return view('letters.edit', compact('letter', 'letterTypes', 'sequences', 'pejabats', 'gurus'));
     }
 
     public function update(Request $request, Letter $letter)
@@ -125,12 +135,20 @@ class LetterController extends Controller
             'content'     => 'required|string',
             'jumlah_ttd'  => 'required|in:1,2',
             'kepsek_id'   => 'required|exists:pejabats,id',
-            'pihak1_name'   => 'nullable|required_if:jumlah_ttd,2|string|max:255',
+            'pihak1_id'   => 'nullable|required_if:jumlah_ttd,2|exists:users,id',
         ]);
 
         $types = $this->getLetterTypes();
 
         $letter->fill($validated);
+        
+        if ($request->jumlah_ttd == 2 && $request->pihak1_id) {
+            $guru = User::find($request->pihak1_id);
+            if ($guru) {
+                $letter->pihak1_name = $guru->name;
+            }
+        }
+        
         $letter->title = ($types[$request->type_code] ?? 'Surat') . ' - ' . ($request->event_name ?: 'Kegiatan');
         if ($request->input('action') === 'draft') {
             $letter->status = 'draft';

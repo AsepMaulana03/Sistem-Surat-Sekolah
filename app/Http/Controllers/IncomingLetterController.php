@@ -10,10 +10,26 @@ use Illuminate\Support\Facades\Storage;
 
 class IncomingLetterController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         // For Staf TU: show all incoming letters. For Kepsek: show all as well.
-        $letters = IncomingLetter::with('creator')->latest()->get();
+        $query = IncomingLetter::with('creator');
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('no_surat', 'like', "%{$search}%")
+                  ->orWhere('perihal', 'like', "%{$search}%")
+                  ->orWhere('asal_surat', 'like', "%{$search}%")
+                  ->orWhere('tujuan', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('status') && $request->status !== 'semua') {
+            $query->where('status', $request->status);
+        }
+
+        $letters = $query->latest()->get();
         return view('incoming_letters.index', compact('letters'));
     }
 
@@ -32,31 +48,49 @@ class IncomingLetterController extends Controller
         // Save the file temporarily or permanently
         $path = $request->file('file')->store('incoming_letters', 'public');
 
-        // REAL OCR ENGINE: Extracting text using Tesseract
+        // REAL OCR ENGINE / PDF Parser: Extracting text
         try {
             $fullPath = storage_path('app/public/' . $path);
+            $ext = strtolower(pathinfo($fullPath, PATHINFO_EXTENSION));
+            $text = '';
             
-            $tesseract = new TesseractOCR($fullPath);
-            // On Windows, if tesseract is not in PATH, we must specify the executable path
-            $tesseract->executable('C:\Program Files\Tesseract-OCR\tesseract.exe');
+            if ($ext === 'pdf') {
+                $parser = new \Smalot\PdfParser\Parser();
+                $pdf = $parser->parseFile($fullPath);
+                $text = trim($pdf->getText());
+
+                // Jika hasil parse kosong/sedikit, berarti ini PDF hasil scan. Gunakan Ghostscript + Tesseract
+                if (strlen($text) < 50) {
+                    $gsPath = 'C:\Program Files\gs\gs10.07.1\bin\gswin64c.exe';
+                    if (!file_exists($gsPath)) {
+                        $gsPath = 'gswin64c'; // Fallback if added to PATH
+                    }
+                    
+                    $tempImage = storage_path('app/public/temp_ocr_' . uniqid() . '.png');
+                    $cmd = sprintf('"%s" -dQUIET -dPARANOIDSAFER -dBATCH -dNOPAUSE -dNOPROMPT -sDEVICE=png16m -dTextAlphaBits=4 -dGraphicsAlphaBits=4 -r300 -dFirstPage=1 -dLastPage=1 -sOutputFile="%s" "%s"', $gsPath, $tempImage, $fullPath);
+                    shell_exec($cmd);
+                    
+                    if (file_exists($tempImage)) {
+                        $tesseract = new TesseractOCR($tempImage);
+                        $tesseract->executable('C:\Program Files\Tesseract-OCR\tesseract.exe');
+                        $text = $tesseract->run();
+                        @unlink($tempImage); // Hapus gambar sementara
+                    }
+                }
+            } else {
+                $tesseract = new TesseractOCR($fullPath);
+                // On Windows, if tesseract is not in PATH, we must specify the executable path
+                $tesseract->executable('C:\Program Files\Tesseract-OCR\tesseract.exe');
+                $text = $tesseract->run();
+            }
             
-            $text = $tesseract->run();
-            
-            // Basic parsing logic to find No Surat, Perihal, Asal Surat
+            // Basic parsing logic to find No Surat, Perihal, Asal Surat, Tujuan
             $noSurat = '';
             $perihal = '';
             $asalSurat = '';
+            $tujuan = '';
             
             $lines = explode("\n", $text);
-            foreach ($lines as $line) {
-                $line = trim($line);
-                if (preg_match('/(?:Nomor|No)[\s\.:]+(.+)/i', $line, $matches)) {
-                    $noSurat = trim($matches[1]);
-                }
-                if (preg_match('/(?:Perihal|Hal)[\s\.:]+(.+)/i', $line, $matches)) {
-                    $perihal = trim($matches[1]);
-                }
-            }
             
             // Asal surat might be at the top of the letter. Grab the first non-empty string.
             foreach ($lines as $line) {
@@ -67,10 +101,57 @@ class IncomingLetterController extends Controller
                 }
             }
 
+            $isTujuanArea = false;
+            $tujuanLines = [];
+
+            foreach ($lines as $line) {
+                $line = trim($line);
+                if (empty($line)) continue;
+
+                // Match Nomor
+                if (preg_match('/^(?:Nomor|No)[\s\.:]+(.+)/i', $line, $matches)) {
+                    $val = trim($matches[1]);
+                    // Ignore if it's HP/WA
+                    if (!preg_match('/HP\/WA/i', $line)) {
+                        $noSurat = $val;
+                    }
+                }
+
+                // Match Perihal
+                if (preg_match('/^(?:Perihal|Hal)[\s\.:]+(.+)/i', $line, $matches)) {
+                    $perihal = trim($matches[1]);
+                }
+
+                // Match Tujuan
+                if (!$isTujuanArea && (preg_match('/^Kepada\b/i', $line) || preg_match('/^Yth\.?/i', $line))) {
+                    $isTujuanArea = true;
+                    // If it also contains Yth, we capture it
+                    if (preg_match('/^Yth\.?\s*(.+)/i', $line)) {
+                        $tujuanLines[] = $line;
+                    } elseif (preg_match('/Kepada\s+(Yth.+)/i', $line, $kepadaMatches)) {
+                        $tujuanLines[] = trim($kepadaMatches[1]);
+                    }
+                    continue;
+                }
+
+                if ($isTujuanArea) {
+                    if (preg_match('/^di\b/i', $line) || preg_match('/^Di\b/i', $line) || preg_match('/^Assalamu/i', $line) || preg_match('/^Dengan hormat/i', $line)) {
+                        $isTujuanArea = false;
+                    } else {
+                        $tujuanLines[] = $line;
+                    }
+                }
+            }
+
+            if (!empty($tujuanLines)) {
+                $tujuan = implode("\n", $tujuanLines);
+            }
+
             $ocrData = [
                 'no_surat' => $noSurat ?: ('SM.' . date('Ymd') . '.' . rand(100, 999)),
                 'perihal' => $perihal ?: 'Hasil Scan Tidak Jelas (Silakan Edit)',
                 'asal_surat' => $asalSurat ?: 'Hasil Scan Tidak Jelas (Silakan Edit)',
+                'tujuan' => $tujuan ?: 'Kepala Sekolah',
             ];
             
         } catch (\Exception $e) {
@@ -79,6 +160,7 @@ class IncomingLetterController extends Controller
                 'no_surat' => 'ERROR_OCR',
                 'perihal' => 'Gagal membaca dokumen: ' . substr($e->getMessage(), 0, 100),
                 'asal_surat' => 'Silakan ketik manual',
+                'tujuan' => 'Kepala Sekolah',
             ];
         }
 
@@ -95,6 +177,7 @@ class IncomingLetterController extends Controller
             'no_surat' => 'required|string|max:255',
             'perihal' => 'required|string|max:255',
             'asal_surat' => 'required|string|max:255',
+            'tujuan' => 'nullable|string|max:255',
         ]);
 
         IncomingLetter::create([
@@ -102,6 +185,7 @@ class IncomingLetterController extends Controller
             'no_surat' => $request->no_surat,
             'perihal' => $request->perihal,
             'asal_surat' => $request->asal_surat,
+            'tujuan' => $request->tujuan,
             'status' => 'menunggu_disposisi',
             'created_by' => Auth::id(),
         ]);
@@ -133,5 +217,17 @@ class IncomingLetterController extends Controller
         }
 
         return back()->with('error', 'Anda tidak memiliki akses untuk melakukan disposisi.');
+    }
+
+    public function destroy(IncomingLetter $incomingLetter)
+    {
+        // Delete the physical file if it exists
+        if ($incomingLetter->file_path && Storage::disk('public')->exists($incomingLetter->file_path)) {
+            Storage::disk('public')->delete($incomingLetter->file_path);
+        }
+
+        $incomingLetter->delete();
+
+        return redirect()->route('incoming-letters.index')->with('success', 'Surat Masuk berhasil dihapus.');
     }
 }

@@ -43,6 +43,21 @@
                     </svg>
                     Dashboard
                 </a>
+
+                @if(Auth::user() && Auth::user()->role && Auth::user()->role->code === 'guru')
+                <a href="{{ route('guru.approval') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg {{ request()->routeIs('guru.approval') ? 'bg-white/10 text-white' : 'text-gray-400 hover:bg-white/5 hover:text-white' }} text-sm font-medium transition-all duration-150">
+                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Approval Pihak 1
+                </a>
+                <a href="{{ route('guru.arsip') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg {{ request()->routeIs('guru.arsip') ? 'bg-white/10 text-white' : 'text-gray-400 hover:bg-white/5 hover:text-white' }} text-sm font-medium transition-all duration-150">
+                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path>
+                    </svg>
+                    Arsip Pihak 1
+                </a>
+                @endif
                 
                 <a href="{{ route('letters.create') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg {{ request()->routeIs('letters.create') ? 'bg-white/10 text-white' : 'text-gray-400 hover:bg-white/5 hover:text-white' }} text-sm font-medium transition-all duration-150">
                     <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -139,6 +154,22 @@
 
         <!-- Page Content -->
         <div class="flex-1 overflow-y-auto p-8">
+            @if ($errors->any())
+                <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl shadow-sm">
+                    <div class="flex items-center gap-3 text-red-700 font-medium mb-2">
+                        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Terdapat kesalahan pada input Anda:
+                    </div>
+                    <ul class="list-disc list-inside text-sm text-red-600 ml-8 space-y-1">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
             @if(session('success'))
                 <div class="mb-6 flex items-center gap-3 p-4 bg-green-50 border border-green-100 text-green-700 rounded-xl text-sm font-medium shadow-sm">
                     <svg class="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">

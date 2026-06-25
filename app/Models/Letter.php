@@ -43,4 +43,9 @@ class Letter extends Model
     {
         return $this->belongsTo(User::class, 'reviewed_by');
     }
+
+    public function pihak1(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'pihak1_id');
+    }
 }

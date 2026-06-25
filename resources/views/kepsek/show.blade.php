@@ -10,7 +10,13 @@
         </div>
         <div class="flex items-center gap-3">
             @php
-                $statusConfig = ['draft'=>['bg-gray-100 text-gray-600','Draft'],'pending'=>['bg-amber-50 text-amber-600','Pending'],'approved'=>['bg-green-50 text-green-600','Disetujui'],'rejected'=>['bg-red-50 text-red-500','Ditolak']];
+                $statusConfig = [
+                    'draft'=>['bg-gray-100 text-gray-600','Draft'],
+                    'menunggu_persetujuan_pihak1' => ['bg-blue-50 text-blue-600', 'Menunggu Pihak 1'],
+                    'pending'=>['bg-amber-50 text-amber-600','Menunggu Kepsek'],
+                    'approved'=>['bg-green-50 text-green-600','Disetujui'],
+                    'rejected'=>['bg-red-50 text-red-500','Ditolak']
+                ];
                 [$cls,$lbl] = $statusConfig[$letter->status] ?? ['bg-gray-100 text-gray-600', ucfirst($letter->status)];
             @endphp
             <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold {{ $cls }}">{{ $lbl }}</span>
@@ -70,14 +76,28 @@
 
         <div class="text-center italic mt-6 mb-8">Wassalamu'alaikum warahmatullahi wabarakatuh</div>
 
-        <div class="flex justify-end mt-12">
+        <div class="mt-12 flex {{ $letter->jumlah_ttd == 2 ? 'justify-between' : 'justify-end' }}">
+            @if($letter->jumlah_ttd == 2)
             <div class="text-center w-64">
-                <div>Panjalu, {{ $letter->letter_date ? $letter->letter_date->isoFormat('D MMMM Y') : '-' }}</div>
+                <div class="h-6"></div> <!-- Spacer -->
+                <div>Mengetahui,</div>
+                <div>Pihak 1 / Guru Pendamping</div>
+                <div class="font-bold">SMA AL MANSHUR</div>
+                <div class="h-20"></div>
+                <div class="font-bold underline">{{ $letter->pihak1_name ?? '-' }}</div>
+            </div>
+            @endif
+
+            <div class="text-center w-64">
+                <div>Panjalu, {{ $letter->letter_date ? \Carbon\Carbon::parse($letter->letter_date)->isoFormat('D MMMM Y') : '-' }}</div>
                 <div>Mengetahui,</div>
                 <div>Kepala Sekolah</div>
                 <div class="font-bold">SMA AL MANSHUR</div>
                 <div class="h-20"></div>
-                <div class="font-bold underline">Tini Sonjaya,S.Pd.,Gr</div>
+                @php
+                    $kepsekName = \App\Models\Pejabat::find($letter->kepsek_id)?->nama ?? 'Tini Sonjaya,S.Pd.,Gr';
+                @endphp
+                <div class="font-bold underline">{{ $kepsekName }}</div>
             </div>
         </div>
     </div>

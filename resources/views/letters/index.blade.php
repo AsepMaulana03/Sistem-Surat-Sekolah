@@ -86,7 +86,8 @@
                         @php
                             $statusConfig = [
                                 'draft'    => ['bg-gray-100 text-gray-500',   'Draft'],
-                                'pending'  => ['bg-amber-50 text-amber-600',  'Menunggu'],
+                                'menunggu_persetujuan_pihak1' => ['bg-blue-50 text-blue-600', 'Menunggu Pihak 1'],
+                                'pending'  => ['bg-amber-50 text-amber-600',  'Menunggu Kepsek'],
                                 'approved' => ['bg-green-50 text-green-600',  'Disetujui'],
                                 'rejected' => ['bg-red-50 text-red-500',      'Ditolak'],
                             ];

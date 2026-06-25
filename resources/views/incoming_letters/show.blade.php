@@ -55,6 +55,10 @@
                     <p class="text-sm font-semibold text-gray-900 mt-0.5">{{ $incomingLetter->asal_surat }}</p>
                 </div>
                 <div>
+                    <p class="text-xs text-gray-500 font-medium">Tujuan Surat</p>
+                    <p class="text-sm font-semibold text-gray-900 mt-0.5">{{ $incomingLetter->tujuan }}</p>
+                </div>
+                <div>
                     <p class="text-xs text-gray-500 font-medium">Perihal</p>
                     <p class="text-sm font-semibold text-gray-900 mt-0.5">{{ $incomingLetter->perihal }}</p>
                 </div>

@@ -120,14 +120,29 @@
 
                 <div class="text-center italic mt-8 mb-8">Wassalamu'alaikum warahmatullahi wabarakatuh</div>
 
-                <div class="flex justify-end mt-12">
+                <!-- Tanda Tangan -->
+                <div class="mt-12 flex {{ $letter->jumlah_ttd == 2 ? 'justify-between' : 'justify-end' }}">
+                    @if($letter->jumlah_ttd == 2)
+                    <div class="text-center w-64">
+                        <div class="h-6"></div> <!-- Spacer -->
+                        <div>Mengetahui,</div>
+                        <div>Pihak 1 / Guru Pendamping</div>
+                        <div class="font-bold">SMA AL MANSHUR</div>
+                        <div class="h-20"></div>
+                        <div class="font-bold underline">{{ $letter->pihak1_name ?? '-' }}</div>
+                    </div>
+                    @endif
+
                     <div class="text-center w-64">
                         <div>Panjalu, {{ $letter->letter_date ? \Carbon\Carbon::parse($letter->letter_date)->isoFormat('D MMMM Y') : '-' }}</div>
                         <div>Mengetahui,</div>
                         <div>Kepala Sekolah</div>
                         <div class="font-bold">SMA AL MANSHUR</div>
-                        <div class="h-24"></div>
-                        <div class="font-bold underline">Tini Sonjaya,S.Pd.,Gr</div>
+                        <div class="h-20"></div>
+                        @php
+                            $kepsekName = \App\Models\Pejabat::find($letter->kepsek_id)?->nama ?? 'Tini Sonjaya,S.Pd.,Gr';
+                        @endphp
+                        <div class="font-bold underline">{{ $kepsekName }}</div>
                     </div>
                 </div>
             </div>

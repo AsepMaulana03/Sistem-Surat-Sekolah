@@ -15,6 +15,7 @@ class IncomingLetter extends Model
         'no_surat',
         'perihal',
         'asal_surat',
+        'tujuan',
         'status', // menunggu_disposisi, selesai
         'instruksi_disposisi',
         'disposisi_at',

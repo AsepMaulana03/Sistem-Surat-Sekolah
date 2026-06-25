@@ -102,13 +102,16 @@
                     </div>
                 </div>
 
-                <!-- Pihak 1 / Guru Pendamping (Hanya muncul jika 2 Penandatangan) -->
                 <div x-show="jumlahTtd == '2'" style="display: none;">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Nama Pihak 1 / Guru Pendamping</label>
-                    <input type="text" name="pihak1_name" x-model="pihak1Name"
+                    <select name="pihak1_id" x-model="pihak1Id"
                         class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
-                        placeholder="Contoh: Budi Santoso, S.Pd"
                         :required="jumlahTtd == '2'">
+                        <option value="" disabled selected>Pilih Pihak 1</option>
+                        <template x-for="guru in gurus" :key="guru.id">
+                            <option :value="guru.id" x-text="guru.name"></option>
+                        </template>
+                    </select>
                 </div>
 
                 <div class="flex gap-4 pt-2">
@@ -248,7 +251,8 @@
             destination: @json($letter->destination ?? ''),
             content: @json($letter->content ?? ''),
             jumlahTtd: '{{ $letter->jumlah_ttd ?? 1 }}',
-            pihak1Name: @json($letter->pihak1_name ?? ''),
+            pihak1Id: '{{ $letter->pihak1_id ?? "" }}',
+            gurus: @json($gurus),
             kepsekId: '{{ $letter->kepsek_id ?? "" }}',
             pejabats: @json($pejabats),
             
@@ -263,6 +267,12 @@
                         this.kepsekId = active.id;
                     }
                 }
+            },
+
+            get pihak1Name() {
+                if (!this.pihak1Id) return '';
+                const g = this.gurus.find(g => g.id == this.pihak1Id);
+                return g ? g.name : '';
             },
 
             get kepsekName() {
