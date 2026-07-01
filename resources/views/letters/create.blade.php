@@ -126,21 +126,23 @@
             <div class="bg-white p-10 md:p-12 shadow-md border border-gray-200 rounded-lg mx-auto text-[13px] text-black w-full max-w-3xl" style="aspect-ratio: 1 / 1.414; font-family: 'Times New Roman', Times, serif;">
                 
                 <!-- KOP Surat -->
-                <div class="flex items-center justify-between border-b-4 border-black pb-4 mb-6">
-                    <img src="{{ asset('images/logo_yayasan.png') }}" alt="Logo Yayasan" class="w-20 h-20 object-contain flex-shrink-0">
-                    <div class="text-center px-4">
-                        <div class="font-bold text-sm tracking-wide">YAYASAN JAUHARUL HUDA AL-ALMANSHUIR</div>
-                        <div class="font-bold text-lg tracking-wider">SEKOLAH MENENGAH ATAS</div>
-                        <div class="font-bold text-xl tracking-widest">AL MANSHUR</div>
-                        <div class="text-[11px] font-semibold">Terakreditasi "A"</div>
-                        <div class="text-[10px]">Alamat: Jl. Kawali-Panjalu KM 07 Desa Sandingtaman Kec Panjalu Kab Ciamis Jawa Barat 46264</div>
-                        <div class="text-[10px]">Tlp: 082217803253 email: <span class="text-blue-600">almanshurpublisher01@gmail.com</span></div>
+                <div class="flex items-center justify-between border-b-[5px] border-double border-gray-600 pb-2 mb-4 relative">
+                    <div class="absolute bottom-0 left-0 w-full border-b-[2px] border-black" style="margin-bottom: -4px;"></div>
+                    <img src="{{ asset('images/logo_yayasan.png') }}" alt="Logo Yayasan" class="w-20 h-20 object-contain flex-shrink-0 z-10 relative">
+                    <div class="text-center px-4 flex-1 z-10 relative">
+                        <div class="font-bold text-[12px] tracking-wide uppercase">YAYASAN JAUHARUL HUDA AL-MANSHUR</div>
+                        <div class="font-bold text-[14px] tracking-wider uppercase">SEKOLAH MENENGAH ATAS</div>
+                        <div class="font-bold text-[17px] tracking-widest uppercase">AL MANSHUR</div>
+                        <div class="text-[11px] font-bold uppercase mt-0.5">TERAKREDITASI "A"</div>
+                        <div class="text-[10px] font-semibold">Nomor: 163/BAN-PDM/SK/2025</div>
+                        <div class="text-[10px] mt-0.5">Alamat: Jl. Kawali-Panjalu KM 07 Desa Sandingtaman Kec.Panjalu Kab. Ciamis Jawa Barat 46264</div>
+                        <div class="text-[10px]">Tlp: 082217803253 email: <span class="text-blue-600 underline">almanshurpublisher01@gmail.com</span></div>
                     </div>
-                    <img src="{{ asset('images/logo_sekolah.png') }}" alt="Logo Sekolah" class="w-20 h-20 object-contain flex-shrink-0">
+                    <img src="{{ asset('images/logo_sekolah.png') }}" alt="Logo Sekolah" class="w-20 h-20 object-contain flex-shrink-0 z-10 relative">
                 </div>
 
                 <!-- Nomor & Lampiran -->
-                <div class="mb-6">
+                <div class="mb-4">
                     <table class="w-full">
                         <tr>
                             <td class="w-24 align-top">Nomor</td>
@@ -161,37 +163,34 @@
                 </div>
 
                 <!-- Tujuan -->
-                <div class="mb-6">
-                    <div>Kepada Yth,</div>
-                    <div x-text="destination || '(Tujuan isi otomatis)'"></div>
-                    <div>di tempat</div>
+                <div class="mb-4 mt-2">
+                    <div>Kepada:</div>
+                    <div>Yth. <span x-text="destination ? destination.replace('Yth. ', '') : '(Tujuan isi otomatis)'"></span></div>
+                    <div class="mt-2">di Tempat</div>
                 </div>
 
                 <!-- Salam Pembuka -->
-                <div class="text-center italic mb-4">
-                    Assalamu'alaikum warahmatullahi wabarakatuh
+                <div class="text-center italic mb-3 mt-4">
+                    Assalamu'alaikum warahmatullahi wabarakatuh,
                 </div>
 
                 <!-- Isi Surat -->
-                <div class="text-justify leading-relaxed whitespace-pre-wrap min-h-[150px]" x-text="content || '(isi surat otomatis)'"></div>
+                <div class="text-justify leading-relaxed mt-4 min-h-[150px]" x-html="formattedContent"></div>
 
                 <!-- Salam Penutup -->
-                <div class="text-center italic mt-6 mb-8">
-                    Wassalamu'alaikum warahmatullahi wabarakatuh
+                <div class="text-center italic mt-3 mb-3">
+                    Wassalamu'alaikum warahmatullahi wabarakatuh.
                 </div>
 
                 <!-- Tanda Tangan -->
-                <div class="mt-12 flex" :class="jumlahTtd == '2' ? 'justify-between' : 'justify-end'">
+                <div class="mt-6 flex" :class="jumlahTtd == '2' ? 'justify-between' : 'justify-end'">
                     <!-- Pihak 1 -->
                     <div x-show="jumlahTtd == '2'" class="text-center w-64" style="display: none;">
-                        <div class="h-6"></div> <!-- Spacer to match Kepsek's date -->
-                        <div>Mengetahui,</div>
-                        <div>Pihak 1 / Guru Pendamping</div>
-                        <div class="font-bold">SMA AL MANSHUR</div>
-                        
-                        <div class="h-20"></div> <!-- Space for signature -->
-                        
-                        <div class="font-bold underline" x-text="pihak1Name || '(Nama Pihak 1)'"></div>
+                        <div>&nbsp;</div>
+                        <div>&nbsp;</div>
+                        <div>Guru Pendamping</div>
+                        <div class="h-24 relative"></div>
+                        <div class="font-bold" x-text="pihak1Name || '(Nama Pihak 1)'"></div>
                     </div>
 
                     <!-- Kepala Sekolah -->
@@ -200,10 +199,8 @@
                         <div>Mengetahui,</div>
                         <div>Kepala Sekolah</div>
                         <div class="font-bold">SMA AL MANSHUR</div>
-                        
-                        <div class="h-20"></div> <!-- Space for signature -->
-                        
-                        <div class="font-bold underline" x-text="kepsekName || '(Nama Kepala Sekolah)'"></div>
+                        <div class="h-24 relative"></div>
+                        <div class="font-bold" x-text="kepsekName || '(Nama Kepala Sekolah)'"></div>
                     </div>
                 </div>
 
@@ -320,6 +317,36 @@
                 if (!this.letterDate) return '(tanggal isi otomatis)';
                 const options = { day: 'numeric', month: 'long', year: 'numeric' };
                 return new Date(this.letterDate).toLocaleDateString('id-ID', options);
+            },
+            
+            escapeHtml(text) {
+                return text.replace(/&/g, "&amp;")
+                           .replace(/</g, "&lt;")
+                           .replace(/>/g, "&gt;")
+                           .replace(/"/g, "&quot;")
+                           .replace(/'/g, "&#039;");
+            },
+
+            get formattedContent() {
+                if (!this.content) return '(isi surat otomatis)';
+                const lines = this.content.split('\n');
+                let html = '';
+                for (let line of lines) {
+                    const trimmed = line.trim();
+                    const colonPos = trimmed.indexOf(':');
+                    if (colonPos !== -1 && colonPos > 0 && colonPos < 35) {
+                        const before = trimmed.substring(0, colonPos).trim();
+                        const after = trimmed.substring(colonPos + 1).trimStart();
+                        html += `<div class="flex ml-8 my-0.5">
+                            <div class="w-40">${this.escapeHtml(before)}</div>
+                            <div class="w-4">:</div>
+                            <div class="flex-1">${this.escapeHtml(after)}</div>
+                        </div>`;
+                    } else {
+                        html += `<p class="mb-0 ${trimmed === '' ? 'h-2' : ''}">${this.escapeHtml(trimmed).replace(/\n/g, '<br>')}</p>`;
+                    }
+                }
+                return html;
             }
         }
     }

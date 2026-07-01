@@ -85,21 +85,23 @@
         <div class="flex-1 overflow-x-auto">
             <div id="printableArea" class="bg-white p-10 md:p-14 shadow-sm border border-gray-100 rounded-2xl text-[13px] text-black mx-auto" style="font-family: 'Times New Roman', Times, serif; min-height: 297mm; max-width: 210mm;">
                 <!-- KOP Surat -->
-                <div class="flex items-center justify-between border-b-[3px] border-black pb-4 mb-6">
-                    <img src="{{ asset('images/logo_yayasan.png') }}" alt="Logo Yayasan" class="w-24 h-24 object-contain flex-shrink-0">
-                    <div class="text-center px-4 flex-1">
-                        <div class="font-bold text-[13px] tracking-wide uppercase">YAYASAN JAUHARUL HUDA AL-ALMANSHUIR</div>
+                <div class="flex items-center justify-between border-b-[5px] border-double border-gray-600 pb-2 mb-4 relative">
+                    <div class="absolute bottom-0 left-0 w-full border-b-[2px] border-black" style="margin-bottom: -4px;"></div>
+                    <img src="{{ asset('images/logo_yayasan.png') }}" alt="Logo Yayasan" class="w-24 h-24 object-contain flex-shrink-0 z-10 relative">
+                    <div class="text-center px-4 flex-1 z-10 relative">
+                        <div class="font-bold text-[13px] tracking-wide uppercase">YAYASAN JAUHARUL HUDA AL-MANSHUR</div>
                         <div class="font-bold text-[15px] tracking-wider uppercase">SEKOLAH MENENGAH ATAS</div>
                         <div class="font-bold text-[18px] tracking-widest uppercase">AL MANSHUR</div>
-                        <div class="text-[11px] font-semibold">Terakreditasi "A"</div>
-                        <div class="text-[10px] mt-1">Alamat: Jl. Kawali-Panjalu KM 07 Desa Sandingtaman Kec Panjalu Kab Ciamis Jawa Barat 46264</div>
-                        <div class="text-[10px]">Tlp: 082217803253 email: <span>almanshurpublisher01@gmail.com</span></div>
+                        <div class="text-[12px] font-bold uppercase mt-0.5">TERAKREDITASI "A"</div>
+                        <div class="text-[10px] font-semibold">Nomor: 163/BAN-PDM/SK/2025</div>
+                        <div class="text-[10px] mt-0.5">Alamat: Jl. Kawali-Panjalu KM 07 Desa Sandingtaman Kec.Panjalu Kab. Ciamis Jawa Barat 46264</div>
+                        <div class="text-[10px]">Tlp: 082217803253 email: <span class="text-blue-600 underline">almanshurpublisher01@gmail.com</span></div>
                     </div>
-                    <img src="{{ asset('images/logo_sekolah.png') }}" alt="Logo Sekolah" class="w-24 h-24 object-contain flex-shrink-0">
+                    <img src="{{ asset('images/logo_sekolah.png') }}" alt="Logo Sekolah" class="w-24 h-24 object-contain flex-shrink-0 z-10 relative">
                 </div>
 
                 <!-- Nomor -->
-                <div class="mb-6">
+                <div class="mb-4">
                     <table>
                         <tr><td class="w-20 align-top">Nomor</td><td class="w-4 align-top text-center">:</td><td>{{ $letter->letter_number ?? '-' }}</td></tr>
                         <tr><td class="align-top">Lampiran</td><td class="align-top text-center">:</td><td>-</td></tr>
@@ -108,28 +110,50 @@
                 </div>
 
                 <!-- Tujuan -->
-                <div class="mb-6">
-                    <div>Kepada Yth,</div>
-                    <div>{{ $letter->destination ?? '-' }}</div>
-                    <div>di tempat</div>
+                <div class="mb-4 mt-2">
+                    <div>Kepada:</div>
+                    <div class="whitespace-pre-line">Yth. {{ str_replace('Yth. ', '', $letter->destination ?? '-') }}</div>
+                    <div>di Tempat</div>
                 </div>
 
-                <div class="text-center italic mb-4 mt-8">Assalamu'alaikum warahmatullahi wabarakatuh</div>
+                <div class="text-center italic mb-4 mt-4">Assalamu'alaikum warahmatullahi wabarakatuh,</div>
 
-                <div class="text-justify leading-relaxed whitespace-pre-wrap">{{ $letter->content }}</div>
+                <div class="leading-relaxed mt-4">
+                    @php
+                        $lines = explode("\n", $letter->content);
+                    @endphp
+                    @foreach($lines as $line)
+                        @php
+                            $trimmed = trim($line);
+                            $colonPos = strpos($trimmed, ':');
+                        @endphp
+                        @if($trimmed === '')
+                            <div class="h-2"></div>
+                        @elseif($colonPos !== false && $colonPos > 0 && $colonPos < 35)
+                            <div class="flex ml-10 my-1">
+                                <div class="w-[140px]">{{ trim(substr($trimmed, 0, $colonPos)) }}</div>
+                                <div class="w-4">:</div>
+                                <div class="flex-1">{{ ltrim(substr($trimmed, $colonPos + 1)) }}</div>
+                            </div>
+                        @else
+                            <div class="text-justify mb-1">
+                                {{ $trimmed }}
+                            </div>
+                        @endif
+                    @endforeach
+                </div>
 
-                <div class="text-center italic mt-8 mb-8">Wassalamu'alaikum warahmatullahi wabarakatuh</div>
+                <div class="text-center italic mt-5 mb-5">Wassalamu'alaikum warahmatullahi wabarakatuh.</div>
 
                 <!-- Tanda Tangan -->
-                <div class="mt-12 flex {{ $letter->jumlah_ttd == 2 ? 'justify-between' : 'justify-end' }}">
+                <div class="mt-6 flex {{ $letter->jumlah_ttd == 2 ? 'justify-between' : 'justify-end' }}">
                     @if($letter->jumlah_ttd == 2)
                     <div class="text-center w-64">
-                        <div class="h-6"></div> <!-- Spacer -->
-                        <div>Mengetahui,</div>
-                        <div>Pihak 1 / Guru Pendamping</div>
-                        <div class="font-bold">SMA AL MANSHUR</div>
-                        <div class="h-20"></div>
-                        <div class="font-bold underline">{{ $letter->pihak1_name ?? '-' }}</div>
+                        <div>&nbsp;</div>
+                        <div>&nbsp;</div>
+                        <div>Guru Pendamping</div>
+                        <div class="h-24 relative"></div>
+                        <div class="font-bold">{{ $letter->pihak1_name ?? '-' }}</div>
                     </div>
                     @endif
 
@@ -138,11 +162,11 @@
                         <div>Mengetahui,</div>
                         <div>Kepala Sekolah</div>
                         <div class="font-bold">SMA AL MANSHUR</div>
-                        <div class="h-20"></div>
+                        <div class="h-24 relative"></div>
                         @php
-                            $kepsekName = \App\Models\Pejabat::find($letter->kepsek_id)?->nama ?? 'Tini Sonjaya,S.Pd.,Gr';
+                            $kepsekName = \App\Models\Pejabat::find($letter->kepsek_id)?->nama ?? 'Tini Sonjaya, S.Pd., Gr';
                         @endphp
-                        <div class="font-bold underline">{{ $kepsekName }}</div>
+                        <div class="font-bold">{{ $kepsekName }}</div>
                     </div>
                 </div>
             </div>
